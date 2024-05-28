@@ -1,0 +1,258 @@
+class Node:
+    def __init__(self, data):
+        self.data = data
+        self.left = None
+        self.right = None
+        self.parent = None
+
+
+class Heap:
+    def __init__(self):
+        self.root = None
+
+    def insert(self, data):
+        new_node = Node(data)
+        if self.root is None:
+            self.root = new_node
+        else:
+            self._insert_recursive(self.root, new_node)
+            self._heapify_up(new_node)
+
+    def _insert_recursive(self, current, new_node):
+        if current.left is None:
+            current.left = new_node
+            new_node.parent = current
+        elif current.right is None:
+            current.right = new_node
+            new_node.parent = current 
+        else:
+            self._insert_recursive(current.left, new_node)
+
+    def _heapify_up(self, node):
+        if node.parent is None:
+            return
+        if node.data < node.parent.data:
+            node.data, node.parent.data = node.parent.data, node.data
+            self._heapify_up(node.parent)
+
+    def extract_min(self):
+        if self.root is None:
+            return None
+        min_element = self.root.data
+        last_node = self._get_last_node()
+        if last_node.parent is None:
+            self.root = None
+        else:
+            if last_node.parent.left == last_node:
+                last_node.parent.left = None
+            else:
+                last_node.parent.right = None
+            self.root.data = last_node.data
+            self._heapify_down(self.root)
+        return min_element
+
+    def _heapify_down(self, node):
+        smallest = node
+        if node.left is not None and node.left.data < smallest.data:
+            smallest = node.left
+        if node.right is not None and node.right.data < smallest.data:
+            smallest = node.right
+        if smallest != node:
+            node.data, smallest.data = smallest.data, node.data
+            self._heapify_down(smallest)
+
+    def _get_last_node(self):
+        if self.root is None:
+            return None
+        queue = [self.root]
+        while queue:
+            current = queue.pop(0)
+            if current.left is not None:
+                queue.append(current.left)
+            if current.right is not None:
+                queue.append(current.right)
+        return current
+
+    def level_order(self):
+        if self.root is None:
+            return
+        queue = [self.root]
+        while queue:
+            current = queue.pop(0)
+            print(current.data)
+            if current.left is not None:
+                queue.append(current.left)
+            if current.right is not None:
+                queue.append(current.right)
+
+    def eliminar_paciente_por_nombre(heap, nombre):
+        if heap.root is None:
+            return None
+        
+        paciente_eliminado = None
+        queue = [heap.root]
+
+        while queue:
+            current = queue.pop(0)
+            if current.data.nombre == nombre:
+                paciente_eliminado = current.data
+                break
+            if current.left is not None:
+                queue.append(current.left)
+            if current.right is not None:
+                queue.append(current.right)
+        
+        if paciente_eliminado:
+            heap.extract_min()
+        return paciente_eliminado
+
+    def eliminar_paciente_por_id(heap, numero_paciente):
+        if heap.root is None:
+            return None
+        
+        paciente_eliminado = None
+        queue = [heap.root]
+
+        while queue:
+            current = queue.pop(0)
+            if current.data.numero_paciente == numero_paciente:
+                paciente_eliminado = current.data
+                break
+            if current.left is not None:
+                queue.append(current.left)
+            if current.right is not None:
+                queue.append(current.right)
+        
+        if paciente_eliminado:
+            heap.extract_min()
+        return paciente_eliminado
+    
+
+class Paciente:
+    def __init__(self, numero_paciente, genero, nombre, edad, triaje):
+        self.numero_paciente = int(numero_paciente)
+        self.genero = genero
+        self.nombre = nombre
+        self.edad = edad
+        self.triaje = triaje
+
+    def __lt__(self, other):
+        if self.triaje == other.triaje:
+            return self.numero_paciente < int(other.numero_paciente)
+        return self.triaje < other.triaje
+
+    def __str__(self):
+        return f"Paciente {self.numero_paciente}: {self.nombre}, Edad: {self.edad}, Triaje: {self.triaje}"
+
+
+    def registrar_paciente(heap):
+      numero_paciente = input("Ingrese el número de paciente: ")
+      genero = input("Ingrese el género: ")
+      nombre = input("Ingrese el nombre: ")
+      edad = int(input("Ingrese la edad: "))
+      triaje = int(input("Ingrese el triaje: "))
+      
+      paciente = Paciente(numero_paciente, genero, nombre, edad, triaje)
+      heap.insert(paciente)
+
+      
+    def consultar_proximo_paciente(heap):
+      proximo_paciente = heap.root.data if heap.root else None
+      if proximo_paciente:
+        print("El próximo paciente para atender es:")
+        print(proximo_paciente)
+      else:
+        print("No hay pacientes en espera")
+
+
+    def atender_siguiente(heap):
+      paciente = heap.extract_min()
+      if paciente:
+        print("Se ha atendido al siguiente paciente:")
+        print(paciente)
+      else:
+        print("No hay pacientes en espera")
+
+
+    def consultar_pacientes_en_espera(heap):
+            print("Pacientes en espera:")
+            heap.level_order()
+            
+    def consultar_pacientes_en_espera_por_triaje(self):
+        if self.root is None:
+            print("No hay pacientes en espera.")
+            return
+
+        triaje_a_consultar = int(input("Ingrese el triaje para consultar los pacientes: "))
+        queue = [self.root]
+
+        while queue:
+            current = queue.pop(0)
+            if current.data.triaje == triaje_a_consultar:
+                print(current.data)
+            if current.left is not None:
+                queue.append(current.left)
+            if current.right is not None:
+                queue.append(current.right) 
+
+
+
+    def eliminar_paciente(heap):
+        if heap.root is None:
+            print("No hay pacientes registrados.")
+            return
+
+        opcion = input("¿Quiere eliminar por nombre (N) o por ID (I)? ").upper()
+        
+        if opcion == "N":
+            nombre = input("Ingrese el nombre del paciente que quiere eliminar: ")
+            paciente_eliminado = Heap.eliminar_paciente_por_nombre(heap, nombre)
+        elif opcion == "I":
+            numero_paciente = int(input("Ingrese el número de paciente que quiere eliminar: "))
+            paciente_eliminado = Heap.eliminar_paciente_por_id(heap, numero_paciente)
+        else:
+            print("Opción inválida")
+            return
+
+        if paciente_eliminado:
+            print(f"Se ha eliminado al paciente: {paciente_eliminado}")
+        else:
+            print("No se encontró ningún paciente con la información dada")
+
+
+
+def mostrar_menu():
+    print("\nSISTEMA PARA ATENDER PACIENTES")
+    print("1. Registrar paciente")
+    print("2. Consultar próximo paciente para atención")
+    print("3. Atender el siguiente paciente")
+    print("4. Consultar los pacientes en espera")
+    print("5. Consultar los pacientes en espera por triaje")
+    print("6. Eliminar un paciente")
+    print("7. Salir")
+
+def menu():
+    heap = Heap()
+    while True:
+        mostrar_menu()
+        opcion = input("Ingrese el número de la opción que desea realizar: ")
+
+        if opcion == "1":
+            Paciente.registrar_paciente(heap)
+        elif opcion == "2":
+            Paciente.consultar_proximo_paciente(heap)
+        elif opcion == "3":
+            Paciente.atender_siguiente(heap)
+        elif opcion == "4":
+            Paciente.consultar_pacientes_en_espera(heap)
+        elif opcion == "5":
+            Paciente.consultar_pacientes_en_espera_por_triaje(heap)
+        elif opcion == "6":
+            Paciente.eliminar_paciente(heap)
+        elif opcion == "7":
+            print("Saliendo del programa...")
+            break
+        else:
+            print("Opción inválida. Debe ser un numero entre 1 y 7")
+
+menu()
